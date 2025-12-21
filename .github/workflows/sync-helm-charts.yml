@@ -1,0 +1,28 @@
+name: Sync Helm Charts Index
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Jekyll site
+        uses: actions/checkout@v4
+
+      - name: Fetch Helm charts index
+        run: |
+          mkdir -p _charts
+          curl -fsSL https://kagiso-me.github.io/helm-charts/index.yaml \
+            -o _charts/index.yaml
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add _charts/index.yaml
+          git commit -m "chore: sync helm charts index" || exit 0
+          git push
